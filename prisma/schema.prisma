@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URI")
+}
+
+  model User {
+  id String @id @default(uuid()) @map("_id")
+  firstname        String
+  lastname        String
+
+  email       String  @unique
+  password    String
+  profilePic  String? // Optional
+  bio         String? 
+  createdAt   DateTime @default(now())
+
+  applications        Application[]
+  teams              TeamMember[]
+  organizedHackathons Hackathon[] @relation("Organizer")
+}
+
+model Hackathon {
+  id String @id @default(uuid()) @map("_id")
+  name        String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  prizePool   String
+  location    String?
+  organizerId String
+
+  organizer   User @relation(fields: [organizerId], references: [id], name: "Organizer")
+  applications Application[]
+  teams        Team[]
+}
+
+model Application {
+  id String @id @default(uuid()) @map("_id")
+  userId      String
+  hackathonId String
+  status      String @default("pending") // "pending", "accepted", "rejected"
+  
+  user       User @relation(fields: [userId], references: [id])
+  hackathon  Hackathon @relation(fields: [hackathonId], references: [id])
+}
+
+model Team {
+  id String @id @default(uuid()) @map("_id")
+  name        String
+  hackathonId String
+  createdAt   DateTime @default(now())
+
+  hackathon  Hackathon @relation(fields: [hackathonId], references: [id])
+  members    TeamMember[]
+
+  Project Project[]
+}
+
+model TeamMember {
+  id String @id @default(uuid()) @map("_id")
+  teamId  String
+  userId  String
+  role    String @default("member") // "leader", "member"
+
+  team    Team @relation(fields: [teamId], references: [id])
+  user    User @relation(fields: [userId], references: [id])
+}
+
+model Project {
+  id String @id @default(uuid()) @map("_id")
+  name        String
+  description String
+  repoUrl     String?
+  demoUrl     String?
+  teamId      String
+
+  team Team @relation(fields: [teamId], references: [id])
+}
