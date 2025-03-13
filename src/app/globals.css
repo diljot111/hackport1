@@ -124,3 +124,24 @@
     @apply bg-background text-foreground;
   }
 }
+@keyframes infinite-scroll {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.scroller {
+  display: flex;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+}
+
+.scroller ul {
+  display: flex;
+  gap: 20px;
+  animation: infinite-scroll var(--animation-duration, 20s) linear infinite;
+}

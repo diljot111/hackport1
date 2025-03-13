@@ -16,11 +16,11 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await signOut({ redirect: false }); // Log out user
-    router.push("/login"); // Redirect to login page after logout
+    router.push("/"); // Redirect to home page after logout
   };
 
   return (
-    <nav className="bg-black text-white px-6 py-3 flex justify-between items-center rounded-full max-w-5xl mx-auto">
+    <nav className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black text-white px-6 py-3 flex justify-between items-center rounded-full max-w-5xl w-full border-b border-gray-700 shadow-lg">
       {/* Logo */}
       <div className="flex items-center space-x-2">
         <div className="bg-white p-1 rounded-md">
@@ -55,6 +55,5 @@ export default function Navbar() {
         Logout
       </button>
     </nav>
-    
   );
 }
