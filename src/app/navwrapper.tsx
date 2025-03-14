@@ -1,6 +1,7 @@
 "use client";
 
-import Navbar from "@/component/navbar";
+// import Navbar from "@/component/navbar";
+import Navbar from "@/component/topnav";
 import { usePathname } from "next/navigation";
 
 export default function NavbarWrapper() {
