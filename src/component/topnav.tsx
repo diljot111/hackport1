@@ -2,8 +2,10 @@
 import { useState, useEffect } from "react";
 import clsx from "clsx";
 import { Bell } from "lucide-react";
-import { signOut } from "next-auth/react";
+import axios from "axios"; // ✅ Import axios
 import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -18,9 +20,17 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-      await signOut({ redirect: false }); // Log out user
-      router.push("/"); // Redirect to home page after logout
-    };
+    try {
+      await axios.post("/api/auth/logout"); // ✅ Call logout API
+      toast.success("Logged out successfully!");
+
+      setTimeout(() => {
+        router.push("/login"); // ✅ Redirect to login page
+      }, 1500);
+    } catch (error) {
+      toast.error("Logout failed. Try again.");
+    }
+  };
 
   return (
     <nav
@@ -35,26 +45,19 @@ export default function Navbar() {
           <span className="text-black font-bold text-lg">H</span>
         </div>
         <span className={clsx(
-        scrolled ? "text-black" : "text-white",
-        "text-lg font-semibold transition-colors duration-200"
-          )}>
-  HACKPORT
-</span>
+          scrolled ? "text-black" : "text-white",
+          "text-lg font-semibold transition-colors duration-200"
+        )}>
+          HACKPORT
+        </span>
       </div>
-
 
       {/* Navigation Links */}
       <div className="hidden md:flex space-x-6 text-gray-600">
-        <a
-          href="#"
-          className="hover:text-blue-500 transition-colors duration-200"
-        >
+        <a href="#" className="hover:text-blue-500 transition-colors duration-200">
           Home
         </a>
-        <a
-          href="#"
-          className="hover:text-blue-500 transition-colors duration-200"
-        >
+        <a href="#" className="hover:text-blue-500 transition-colors duration-200">
           Blog
         </a>
       </div>
@@ -65,12 +68,16 @@ export default function Navbar() {
         <div className="w-8 h-8 rounded-full bg-gray-300"></div>
       </div>
 
+      {/* Logout Button */}
       <button
         onClick={handleLogout}
         className="bg-white text-black font-medium px-4 py-2 rounded-full hover:bg-gray-200 transition"
       >
         Logout
       </button>
+
+      {/* Toast Notification */}
+      <ToastContainer position="top-right" autoClose={3000} />
     </nav>
   );
 }

@@ -15,7 +15,7 @@ const hackathons = [
     name: "HackMania",
     date: "May 5, 2025",
     location: "New York",
-    image: "/images/hackmania.png",
+    image: "/",
     link: "https://hackathon.com/hackmani",
   },
 ];

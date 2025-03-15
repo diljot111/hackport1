@@ -25,17 +25,18 @@ export default function LoginForm() {
     };
 
     try {
-      const res = await axios.post("/api/auth/login", userData);
-      const data = res.data;
+      const res = await axios.post("/api/auth/login", userData, { withCredentials: true });
 
       if (res.status === 200) {
         toast.success("Login Successful!");
-        router.push("/main");
-      } else {
-        toast.error(data.error || "Invalid credentials");
+
+        // ✅ Delay to allow cookie storage before redirection
+        setTimeout(() => {
+          router.replace("/main");
+        }, 1000);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Login failed");
+      toast.error(error.response?.data?.message || "Login failed");
     }
 
     setLoading(false);
@@ -49,6 +50,7 @@ export default function LoginForm() {
       </h2>
 
       <form className="my-8" onSubmit={handleSubmit}>
+        {/* Email Input */}
         <Label className="mb-2 block" htmlFor="email">
           Email Address
         </Label>
@@ -61,6 +63,7 @@ export default function LoginForm() {
           required
         />
 
+        {/* Password Input */}
         <Label className="mb-2 block" htmlFor="password">
           Password
         </Label>
@@ -73,6 +76,7 @@ export default function LoginForm() {
           required
         />
 
+        {/* Submit Button */}
         <button
           className="bg-gradient-to-br from-black to-neutral-600 block w-full text-white rounded-md h-10 font-medium shadow-md transition-all hover:opacity-90"
           type="submit"
@@ -81,6 +85,7 @@ export default function LoginForm() {
           {loading ? "Logging in..." : "Login →"}
         </button>
 
+        {/* Sign Up Link */}
         <div className="text-xs text-gray-600 text-center mt-2">
           Don't have an account?{" "}
           <Link href="/signup" className="text-blue-600 underline">
@@ -90,6 +95,7 @@ export default function LoginForm() {
 
         <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
 
+        {/* OAuth Login Buttons */}
         <div className="flex flex-col space-y-4">
           <button
             onClick={() => signIn("github")}

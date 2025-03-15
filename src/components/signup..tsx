@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
@@ -7,25 +7,19 @@ import Link from "next/link";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
 
-// import { useRouter } from "next/navigation";
-import {
-  IconBrandGithub,
-  IconBrandGoogle,
-} from "@tabler/icons-react";
-
-const LabelInputContainer: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
-  <div className={className}>
-    {children}
-  </div>
+const LabelInputContainer: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
+  <div className={className}>{children}</div>
 );
 
 export default function SignupForm() {
-  const router = useRouter(); // ✅ Initialize Next.js router
-  const [loading, setLoading] = React.useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const userData = {
@@ -40,19 +34,20 @@ export default function SignupForm() {
 
     if (!password || !retypepassword) {
       toast.error("Please enter both password fields");
+      setLoading(false);
       return;
     }
 
     if (password !== retypepassword) {
       toast.error("Passwords do not match");
+      setLoading(false);
       return;
     }
 
     try {
-        const res = await axios.post("/api/auth/signup", userData);
-
-     if (res.status === 200) {
-        toast.success("Account Created Successfully");
+      const res = await axios.post("/api/auth/signup", userData);
+      if (res.status === 200) {
+        toast.success("Account Created Successfully!");
         setTimeout(() => router.push("/main"), 2000);
       }
     } catch (error: any) {
@@ -61,11 +56,10 @@ export default function SignupForm() {
       setLoading(false);
     }
   };
+
   return (
     <div className="max-w-md w-full mx-auto rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-black shadow-2xl">
-      <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200 items-center">
-        Welcome to HACKPORT
-      </h2>
+      <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200 text-center">Welcome to HACKPORT</h2>
 
       <form className="my-8" onSubmit={handleSubmit}>
         <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
@@ -95,16 +89,23 @@ export default function SignupForm() {
         </LabelInputContainer>
 
         <button
-          className="bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+          className={`relative w-full h-10 font-medium rounded-md shadow-input transition-all ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-br from-black to-neutral-600 text-white"
+          }`}
           type="submit"
+          disabled={loading}
         >
-          Sign up &rarr;
+          {loading ? "Signing up..." : "Sign up →"}
         </button>
 
         <div className="text-xs text-gray-600 text-center mt-2">
-          Already have an account?
+          Already have an account?{" "}
           <Link href="/login">
-            <u><span className="text-blue-600">Sign In</span></u>
+            <u>
+              <span className="text-blue-600">Sign In</span>
+            </u>
           </Link>
         </div>
 
@@ -112,23 +113,19 @@ export default function SignupForm() {
 
         <div className="flex flex-col space-y-4">
           <button
-            className="relative group/btn flex space-x-2 items-center justify-start px-4 w-full text-black rounded-md h-10 font-medium shadow-input bg-gray-50 dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_var(--neutral-800)]"
+            className="relative flex items-center space-x-2 px-4 w-full h-10 font-medium rounded-md shadow-input bg-gray-50 dark:bg-zinc-900"
             type="button"
           >
             <IconBrandGithub className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
-            <span className="text-neutral-700 dark:text-neutral-300 text-sm">
-              GitHub
-            </span>
+            <span className="text-neutral-700 dark:text-neutral-300 text-sm">GitHub</span>
           </button>
 
           <button
-            className="relative group/btn flex space-x-2 items-center justify-start px-4 w-full text-black rounded-md h-10 font-medium shadow-input bg-gray-50 dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_var(--neutral-800)] shadow-2xl"
+            className="relative flex items-center space-x-2 px-4 w-full h-10 font-medium rounded-md shadow-input bg-gray-50 dark:bg-zinc-900"
             type="button"
           >
             <IconBrandGoogle className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
-            <span className="text-neutral-700 dark:text-neutral-300 text-sm">
-              Google
-            </span>
+            <span className="text-neutral-700 dark:text-neutral-300 text-sm">Google</span>
           </button>
         </div>
       </form>

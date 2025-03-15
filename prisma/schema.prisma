@@ -38,6 +38,7 @@ model Hackathon {
   prizePool   String
   location    String?
   organizerId String
+  image String
 
   organizer   User @relation(fields: [organizerId], references: [id], name: "Organizer")
   applications Application[]
