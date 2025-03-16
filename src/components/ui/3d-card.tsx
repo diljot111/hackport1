@@ -2,33 +2,27 @@
 
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import React, {
-  createContext,
-  useState,
-  useContext,
-  useRef,
-  useEffect,
-} from "react";
-
-// Context for Mouse Interaction
-const MouseEnterContext = createContext<
-  [boolean, React.Dispatch<React.SetStateAction<boolean>>] | undefined
->(undefined);
+import { motion } from "framer-motion";
+import React, { useState, useRef, useEffect } from "react";
 
 // Define Hackathon Type
 interface Hackathon {
   id: string;
   image: string;
   name: string;
-  date: string;
+  description: string;
+  startDate: string;
+  endDate: string;
   location: string;
+  prizePool: string;
+  organizerId: string;
   link: string;
 }
 
 // Fetch Hackathon Data from API
 const fetchHackathons = async (): Promise<Hackathon[]> => {
   try {
-    const response = await fetch("/api/hackathon", { cache: "no-store" });
+    const response = await fetch("/api/auth/hackathon-cards", { cache: "no-store" });
     if (!response.ok) throw new Error("Failed to fetch data");
     return await response.json();
   } catch (error) {
@@ -63,36 +57,7 @@ export const HackathonCards = () => {
       ) : (
         hackathons.map((hackathon) => (
           <CardContainer key={hackathon.id}>
-            <CardBody>
-              <CardItem translateZ={50}>
-                <Image
-                  src={hackathon.image}
-                  alt={hackathon.name}
-                  width={350}
-                  height={250}
-                  className="rounded-lg border border-gray-600 shadow-xl h-[250px] object-cover"
-                />
-              </CardItem>
-              <CardItem translateZ={20} className="text-white text-lg font-bold">
-                {hackathon.name}
-              </CardItem>
-              <CardItem translateZ={10} className="text-gray-400">
-                {hackathon.date}
-              </CardItem>
-              <CardItem translateZ={5} className="text-gray-500">
-                {hackathon.location}
-              </CardItem>
-              <CardItem translateZ={30}>
-                <a
-                  href={hackathon.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white font-semibold transition"
-                >
-                  Register Now
-                </a>
-              </CardItem>
-            </CardBody>
+            <CardBody hackathon={hackathon} />
           </CardContainer>
         ))
       )}
@@ -101,109 +66,73 @@ export const HackathonCards = () => {
 };
 
 // 🎯 3D Card Wrapper with Hover Effect
-export const CardContainer = ({
-  children,
-  className,
-}: {
-  children?: React.ReactNode;
-  className?: string;
-}) => {
+export const CardContainer = ({ children }: { children?: React.ReactNode }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isMouseEntered, setIsMouseEntered] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
-    const { left, top, width, height } =
-      containerRef.current.getBoundingClientRect();
+    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - left - width / 2) / 25;
     const y = (e.clientY - top - height / 2) / 25;
-    containerRef.current.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+    containerRef.current.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
   };
 
-  const handleMouseEnter = () => setIsMouseEntered(true);
   const handleMouseLeave = () => {
     if (!containerRef.current) return;
-    setIsMouseEntered(false);
     containerRef.current.style.transform = `rotateY(0deg) rotateX(0deg)`;
   };
 
   return (
-    <MouseEnterContext.Provider value={[isMouseEntered, setIsMouseEntered]}>
+    <div className="py-10 flex items-center justify-center" style={{ perspective: "1000px" }}>
       <div
-        className="py-10 flex items-center justify-center"
-        style={{ perspective: "1000px" }}
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="transition-transform duration-200 ease-linear"
+        style={{ transformStyle: "preserve-3d" }}
       >
-        <div
-          ref={containerRef}
-          onMouseEnter={handleMouseEnter}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          className={cn(
-            "flex items-center justify-center relative transition-all duration-200 ease-linear",
-            className
-          )}
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {children}
-        </div>
+        {children}
       </div>
-    </MouseEnterContext.Provider>
+    </div>
   );
 };
 
-export const CardBody = ({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div
-    className={cn(
-      "h-96 w-80 [transform-style:preserve-3d] flex flex-col items-center text-center bg-gray-900 p-5 rounded-lg shadow-lg",
-      className
-    )}
-  >
-    {children}
-  </div>
-);
-
-export const CardItem = ({
-  as: Tag = "div",
-  children,
-  className,
-  translateZ = 0,
-}: {
-  as?: React.ElementType;
-  children: React.ReactNode;
-  className?: string;
-  translateZ?: number;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isMouseEntered] = useMouseEnter();
-
-  useEffect(() => {
-    if (!ref.current) return;
-    ref.current.style.transform = isMouseEntered
-      ? `translateZ(${translateZ}px)`
-      : "translateZ(0px)";
-  }, [isMouseEntered]);
-
+export const CardBody = ({ hackathon }: { hackathon: Hackathon }) => {
   return (
-    <Tag
-      ref={ref}
-      className={cn("transition duration-300", className)}
+    <motion.div
+      initial={{ scale: 0.9, rotateY: -15 }}
+      animate={{ scale: 1, rotateY: 0 }}
+      transition={{ duration: 0.5 }}
+      className="relative bg-gray-900 shadow-2xl rounded-lg p-6 w-80 transform"
       style={{ transformStyle: "preserve-3d" }}
     >
-      {children}
-    </Tag>
+      <Image
+        src={hackathon.image}
+        alt={hackathon.name}
+        width={350}
+        height={250}
+        className="rounded-lg border border-gray-600 shadow-xl h-[250px] object-cover"
+      />
+      <div className="mt-4 text-white">
+        <h3 className="text-xl font-bold">{hackathon.name}</h3>
+        <p className="text-gray-400">{hackathon.description}</p>
+        <p className="mt-2 text-sm text-gray-500">
+          📅 {hackathon.startDate} - {hackathon.endDate}
+        </p>
+        <p className="text-sm text-gray-500">📍 {hackathon.location || "Online"}</p>
+        <p className="text-sm text-gray-500">🏆 Prize: {hackathon.prizePool}</p>
+        <p className="text-sm text-gray-500">👤 Organizer ID: {hackathon.organizerId}</p>
+      </div>
+      <div className="mt-4 flex justify-center">
+        <a
+          href={hackathon.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white font-semibold transition"
+        >
+          Register Now
+        </a>
+      </div>
+    </motion.div>
   );
-};
-
-// Hook for Mouse Enter State
-export const useMouseEnter = () => {
-  const context = useContext(MouseEnterContext);
-  if (!context)
-    throw new Error("useMouseEnter must be used within a MouseEnterProvider");
-  return context;
 };

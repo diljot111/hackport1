@@ -1,7 +1,9 @@
 import Navbar from "@/component/navbar";
 import SearchBar from "@/component/searchbar";
 import TopNav from "@/component/topnav";
-import { CardBody, CardContainer, CardItem, HackathonCards } from "@/components/ui/3d-card";
+// import { CardBody, CardContainer, CardItem, HackathonCards } from "@/components/ui/3d-card";
+import { CardContainer,HackathonCards } from "@/components/ui/3d-card";
+
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 
 const items = [
@@ -44,11 +46,16 @@ export default function Main() {
       {/* Content Below (Dummy Section for Scroll) */}
       <div className="mt-[200px] p-4">
         <h1 className="text-2xl font-bold">Scrollable Content</h1>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+        <p>Lorem i
+          psum dolor sit amet, consectetur adipiscing elit...</p>
       </div>
 
-      {/* Static 3D Card */}
       <HackathonCards />
+    </div>
+  );
+
+      {/* Static 3D Card */}
+      {/* <HackathonCards />
       <CardContainer className="h-screen flex items-center justify-center">
         <CardBody className="bg-gray-800 shadow-lg rounded-xl p-6">
           <CardItem as="div" className="w-24 h-24 mx-auto" translateZ={50}>
@@ -69,5 +76,6 @@ export default function Main() {
         </CardBody>
       </CardContainer>
     </div>
-  );
+  ); */}
+  
 }

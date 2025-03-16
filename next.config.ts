@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig: import('next').NextConfig = {
+const nextConfig = {
   images: {
-    domains: ["images.pexels.com"], // Allow images from Pexels
+    domains: ["images.pexels.com", "tse4.mm.bing.net"], // ✅ Merged domains
   },
-  runtime: "nodejs", // ✅ Move runtime outside of experimental
+  runtime: "nodejs", // ✅ Correctly placed outside experimental
 };
 
 module.exports = nextConfig;

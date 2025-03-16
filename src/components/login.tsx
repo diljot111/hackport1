@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -10,22 +11,26 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
+type LoginFormInputs = {
+  email: string;
+  password: string;
+};
+
 export default function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormInputs>();
+
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: LoginFormInputs) => {
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const userData = {
-      email: formData.get("email"),
-      password: formData.get("password"),
-    };
-
     try {
-      const res = await axios.post("/api/auth/login", userData, { withCredentials: true });
+      const res = await axios.post("/api/auth/login", data, { withCredentials: true });
 
       if (res.status === 200) {
         toast.success("Login Successful!");
@@ -49,19 +54,19 @@ export default function LoginForm() {
         Login to HACKPORT
       </h2>
 
-      <form className="my-8" onSubmit={handleSubmit}>
+      <form className="my-8" onSubmit={handleSubmit(onSubmit)}>
         {/* Email Input */}
         <Label className="mb-2 block" htmlFor="email">
           Email Address
         </Label>
         <Input
           id="email"
-          name="email"
+          {...register("email", { required: "Email is required" })}
           placeholder="hackport@fc.com"
           type="email"
-          className="mb-4"
-          required
+          className="mb-2"
         />
+        {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
 
         {/* Password Input */}
         <Label className="mb-2 block" htmlFor="password">
@@ -69,16 +74,16 @@ export default function LoginForm() {
         </Label>
         <Input
           id="password"
-          name="password"
+          {...register("password", { required: "Password is required" })}
           placeholder="••••••••"
           type="password"
-          className="mb-6"
-          required
+          className="mb-2"
         />
+        {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
 
         {/* Submit Button */}
         <button
-          className="bg-gradient-to-br from-black to-neutral-600 block w-full text-white rounded-md h-10 font-medium shadow-md transition-all hover:opacity-90"
+          className="bg-gradient-to-br from-black to-neutral-600 block w-full text-white rounded-md h-10 font-medium shadow-md transition-all hover:opacity-90 mt-4"
           type="submit"
           disabled={loading}
         >
@@ -98,6 +103,7 @@ export default function LoginForm() {
         {/* OAuth Login Buttons */}
         <div className="flex flex-col space-y-4">
           <button
+            type="button"
             onClick={() => signIn("github")}
             className="flex items-center justify-center space-x-2 bg-gray-50 dark:bg-zinc-900 w-full h-10 rounded-md shadow-md transition-all hover:opacity-90"
           >
@@ -108,6 +114,7 @@ export default function LoginForm() {
           </button>
 
           <button
+            type="button"
             onClick={() => signIn("google")}
             className="flex items-center justify-center space-x-2 bg-gray-50 dark:bg-zinc-900 w-full h-10 rounded-md shadow-md transition-all hover:opacity-90"
           >
