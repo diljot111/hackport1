@@ -29,6 +29,15 @@ datasource db {
   organizedHackathons Hackathon[] @relation("Organizer")
 }
 
+model Otp {
+  id        String   @id @default(uuid()) @map("_id")
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+
 model Hackathon {
   id String @id @default(uuid()) @map("_id")
   name        String

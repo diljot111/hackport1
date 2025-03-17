@@ -1,9 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["images.pexels.com", "tse4.mm.bing.net"], // ✅ Merged domains
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**", // Accept images from all domains
+      },
+    ],
   },
-  runtime: "nodejs", // ✅ Correctly placed outside experimental
+  runtime: "nodejs",
 };
 
 module.exports = nextConfig;

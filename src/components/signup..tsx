@@ -27,6 +27,7 @@ export default function SignupForm() {
       lastname: formData.get("lastname"),
       email: formData.get("email"),
       password: formData.get("password"),
+      step: "send_otp",
     };
 
     const password = formData.get("password") as string;
@@ -44,11 +45,13 @@ export default function SignupForm() {
       return;
     }
 
+    console.log("Sending Data:", userData);
+
     try {
       const res = await axios.post("/api/auth/signup", userData);
       if (res.status === 200) {
-        toast.success("Account Created Successfully!");
-        setTimeout(() => router.push("/main"), 2000);
+        toast.success("OTP sent to your email!");
+        setTimeout(() => router.push(`/verify-otp?email=${userData.email}`), 2000);
       }
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Signup failed");
@@ -62,16 +65,15 @@ export default function SignupForm() {
       <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200 text-center">Welcome to HACKPORT</h2>
 
       <form className="my-8" onSubmit={handleSubmit}>
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
-          <LabelInputContainer>
-            <Label htmlFor="firstname">First name</Label>
-            <Input id="firstname" name="firstname" placeholder="Tyler" type="text" required />
-          </LabelInputContainer>
-          <LabelInputContainer>
-            <Label htmlFor="lastname">Last name</Label>
-            <Input id="lastname" name="lastname" placeholder="Durden" type="text" required />
-          </LabelInputContainer>
-        </div>
+        <LabelInputContainer className="mb-4">
+          <Label htmlFor="firstname">First name</Label>
+          <Input id="firstname" name="firstname" placeholder="Tyler" type="text" required />
+        </LabelInputContainer>
+        
+        <LabelInputContainer className="mb-4">
+          <Label htmlFor="lastname">Last name</Label>
+          <Input id="lastname" name="lastname" placeholder="Durden" type="text" required />
+        </LabelInputContainer>
 
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
@@ -90,9 +92,7 @@ export default function SignupForm() {
 
         <button
           className={`relative w-full h-10 font-medium rounded-md shadow-input transition-all ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-br from-black to-neutral-600 text-white"
+            loading ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-br from-black to-neutral-600 text-white"
           }`}
           type="submit"
           disabled={loading}
@@ -101,7 +101,7 @@ export default function SignupForm() {
         </button>
 
         <div className="text-xs text-gray-600 text-center mt-2">
-          Already have an account?{" "}
+          Already have an account? {" "}
           <Link href="/login">
             <u>
               <span className="text-blue-600">Sign In</span>
@@ -115,22 +115,22 @@ export default function SignupForm() {
           <button
             className="relative flex items-center space-x-2 px-4 w-full h-10 font-medium rounded-md shadow-input bg-gray-50 dark:bg-zinc-900"
             type="button"
+            onClick={() => toast.info("Google login coming soon!")}
           >
-            <IconBrandGithub className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
-            <span className="text-neutral-700 dark:text-neutral-300 text-sm">GitHub</span>
+            <IconBrandGoogle className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
+            <span className="text-neutral-700 dark:text-neutral-300 text-sm">Sign up with Google</span>
           </button>
 
           <button
             className="relative flex items-center space-x-2 px-4 w-full h-10 font-medium rounded-md shadow-input bg-gray-50 dark:bg-zinc-900"
             type="button"
+            onClick={() => toast.info("GitHub login coming soon!")}
           >
-            <IconBrandGoogle className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
-            <span className="text-neutral-700 dark:text-neutral-300 text-sm">Google</span>
+            <IconBrandGithub className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
+            <span className="text-neutral-700 dark:text-neutral-300 text-sm">Sign up with GitHub</span>
           </button>
         </div>
       </form>
-
-      {/* ✅ ToastContainer for notifications */}
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );

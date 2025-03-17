@@ -11,7 +11,7 @@ export const InfiniteMovingCards = ({
   className,
 }: {
   items: {
-    image: string; // Added required image attribute
+    image: string;
     quote: string;
     name: string;
     title: string;
@@ -22,7 +22,6 @@ export const InfiniteMovingCards = ({
   className?: string;
 }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
-
   const [start, setStart] = useState(false);
 
   useEffect(() => {
@@ -33,8 +32,7 @@ export const InfiniteMovingCards = ({
     <div
       ref={containerRef}
       className={cn(
-        "scroller relative z-10 max-w-7xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]",
-        className
+        "scroller relative z-10 max-w-7xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]"
       )}
     >
       <ul
@@ -51,11 +49,10 @@ export const InfiniteMovingCards = ({
       >
         {[...items, ...items].map((item, idx) => (
           <li
-            key={idx} // Using idx ensures unique keys for duplicated elements
-            className="w-[350px] max-w-full relative rounded-2xl border border-b-0 shrink-0 border-slate-700 px-8 py-6 md:w-[450px]"
+            key={idx}
+            className="w-[350px] max-w-full relative rounded-2xl border border-blue-500 shadow-lg shrink-0 px-8 py-6 md:w-[450px]"
             style={{
-              background:
-                "linear-gradient(180deg, var(--slate-800), var(--slate-900))",
+              background: "linear-gradient(180deg, #1e3a8a, #111827)", // Updated color
             }}
           >
             <blockquote>
@@ -64,22 +61,22 @@ export const InfiniteMovingCards = ({
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-50 rounded-md object-cover border-2 border-gray-400 shadow-2xl"
+                  className="w-full h-50 rounded-md object-cover border-2 border-gray-300 shadow-2xl"
                 />
               </div>
 
               {/* Quote */}
-              <span className="relative z-20 text-sm leading-[1.6] text-gray-100 font-normal">
+              <span className="relative z-20 text-sm leading-[1.6] text-white font-normal">
                 {item.quote}
               </span>
 
               {/* Name and Title */}
               <div className="relative z-20 mt-6 flex flex-row items-center">
                 <span className="flex flex-col gap-1">
-                  <span className="text-sm leading-[1.6] text-gray-400 font-normal">
+                  <span className="text-sm leading-[1.6] text-gray-300 font-normal">
                     {item.name}
                   </span>
-                  <span className="text-sm leading-[1.6] text-gray-400 font-normal">
+                  <span className="text-sm leading-[1.6] text-gray-300 font-normal">
                     {item.title}
                   </span>
                 </span>
