@@ -71,7 +71,11 @@ export default function Navbar() {
       {/* Logout Button */}
       <button
         onClick={handleLogout}
-        className="bg-white text-black font-medium px-4 py-2 rounded-full hover:bg-gray-200 transition"
+        className={clsx(
+          scrolled ? "text-white bg-black font-medium px-4  py-2 rounded-full hover:bg-gray-800 transition ":"bg-white text-black font-medium px-4 py-2 rounded-full hover:bg-gray-200 transition" ,
+          "text-lg font-semibold transition-colors duration-200"
+        )}
+        // className="bg-white text-black font-medium px-4 py-2 rounded-full hover:bg-gray-200 transition"
       >
         Logout
       </button>

@@ -2,7 +2,7 @@ import Navbar from "@/component/navbar";
 import SearchBar from "@/component/searchbar";
 import TopNav from "@/component/topnav";
 // import { CardBody, CardContainer, CardItem, HackathonCards } from "@/components/ui/3d-card";
-import { CardContainer,HackathonCards } from "@/components/ui/3d-card";
+import { HackathonCards } from "@/components/ui/3d-card";
 
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 
@@ -34,7 +34,7 @@ export default function Main() {
   return (
     <div className="min-h-screen bg-gray-900 text-white pt-[120px]">
       {/* Fixed Search Bar */}
-      <div className="fixed top-0 w-full z-50">
+      <div className="fixed top-0 w-full z-50 mt-15">
         <SearchBar />
       </div>
 
