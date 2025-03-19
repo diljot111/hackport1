@@ -23,6 +23,8 @@ datasource db {
   profilePic  String? // Optional
   bio         String? 
   createdAt   DateTime @default(now())
+  role     String // Default role is "participant"
+
 
   applications        Application[]
   teams              TeamMember[]

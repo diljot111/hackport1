@@ -35,9 +35,17 @@ export default function LoginForm() {
       if (res.status === 200) {
         toast.success("Login Successful!");
 
-        // ✅ Delay to allow cookie storage before redirection
+        const userRole = res.data.role; // Get role from response
+
+        // ✅ Delay for cookie storage before redirection
         setTimeout(() => {
-          router.replace("/main");
+          if (userRole === "admin") {
+            router.replace("/admin/dashboard");
+          } else if (userRole === "organizer") {
+            router.replace("/organizer/dashboard");
+          } else {
+            router.replace("/participant/dashboard");
+          }
         }, 1000);
       }
     } catch (error: any) {

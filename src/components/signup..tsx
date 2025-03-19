@@ -8,6 +8,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
+// import email from "next-auth/providers/email";
 
 const LabelInputContainer: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
   <div className={className}>{children}</div>
@@ -16,6 +17,8 @@ const LabelInputContainer: React.FC<{ children: React.ReactNode; className?: str
 export default function SignupForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState("participant");
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,11 +26,12 @@ export default function SignupForm() {
 
     const formData = new FormData(e.currentTarget);
     const userData = {
-      firstname: formData.get("firstname"),
-      lastname: formData.get("lastname"),
-      email: formData.get("email"),
-      password: formData.get("password"),
+      firstname: formData.get("firstname") as string,
+      lastname: formData.get("lastname") as string,
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
       step: "send_otp",
+      role: role,
     };
 
     const password = formData.get("password") as string;
@@ -46,12 +50,20 @@ export default function SignupForm() {
     }
 
     console.log("Sending Data:", userData);
+    console.log("Selected Role:", role);
 
     try {
       const res = await axios.post("/api/auth/signup", userData);
       if (res.status === 200) {
         toast.success("OTP sent to your email!");
-        setTimeout(() => router.push(`/verify-otp?email=${userData.email}`), 2000);
+        setTimeout(() => {
+          const redirectUrl = userData.role === "participant" ? "/main" : "/hackathon";
+          router.push(
+            `/verify-otp?email=${userData.email}&role=${userData.role}&firstname=${userData.firstname}&lastname=${userData.lastname}&password=${encodeURIComponent(userData.password)}&redirect=${redirectUrl}`
+          );
+        }, 2000);
+        
+  
       }
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Signup failed");
@@ -78,6 +90,25 @@ export default function SignupForm() {
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
           <Input id="email" name="email" placeholder="hackport@fc.com" type="email" required />
+        </LabelInputContainer >
+       
+
+
+        <LabelInputContainer className="mb-4 text-black">
+          <Label className="text-black" htmlFor="role">Select Role</Label>
+          <select
+        id="role"
+        name="role"
+        className="w-full p-2 border rounded-md"
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+        required
+        >
+        <option className="text-black" value="participant">Participant</option>
+        <option className="text-black" value="organizer">Organizer</option>
+        </select>
+        
+
         </LabelInputContainer>
 
         <LabelInputContainer className="mb-4">

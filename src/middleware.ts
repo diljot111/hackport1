@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose"; // ✅ Using `jose` instead of `jsonwebtoken`
 
 export const config = {
-  matcher: ["/main", "/dashboard", "/profile", "/login", "/signup"], // ✅ Protect these routes
+  matcher: ["/main", "/dashboard", "/profile", "/login", "/signup","/hackathon  "], // ✅ Protect these routes
 };
 
 // ✅ Tell Next.js to run middleware in Node.js runtime instead of Edge

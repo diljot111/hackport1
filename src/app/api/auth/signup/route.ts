@@ -7,10 +7,16 @@ import nodemailer from "nodemailer";
 
 export async function POST(req: Request) {
   try {
-    const { firstname, lastname, email, password, otp, step } = await req.json();
+    const { firstname, lastname, email, password, otp, step, role } = await req.json();
+    console.log("Received role:", role);
+
+    const validRoles = ["participant", "organizer", "admin"];
+    if (!validRoles.includes(role)) {
+      return NextResponse.json({ error: "Invalid role selected" }, { status: 400 });
+    }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findFirst({ where: { email, role } });
     if (existingUser) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
@@ -51,7 +57,7 @@ export async function POST(req: Request) {
       
       // Create user
       const user = await prisma.user.create({
-        data: { firstname, lastname, email, password: hashedPassword },
+        data: { firstname, lastname, email, password: hashedPassword, role },
       });
 
       // Generate JWT token

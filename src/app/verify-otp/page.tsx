@@ -8,14 +8,25 @@ import "react-toastify/dist/ReactToastify.css";
 export default function VerifyOtpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Fetch parameters from URL
   const email = searchParams.get("email") || "";
+  const roleFromURL = searchParams.get("role") || "";
+  const firstname = searchParams.get("firstname") || "";
+  const lastname = searchParams.get("lastname") || "";
+  const password = searchParams.get("password") || ""; // Ensure password is captured
+
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutes countdown
 
   useEffect(() => {
-    if (!email) {
-      toast.error("Invalid access to OTP verification page.");
+    console.log("🔍 Debug: Page Loaded");
+    console.log("✅ URL Params:", { email, roleFromURL, firstname, lastname, password });
+
+    if (!email || !password || !roleFromURL || !firstname || !lastname) {
+      toast.error("Invalid access to OTP verification page. Missing data.");
+      console.error("❌ Missing Data:", { email, roleFromURL, firstname, lastname, password });
       router.push("/signup");
     }
 
@@ -25,6 +36,7 @@ export default function VerifyOtpPage() {
         if (prev <= 1) {
           clearInterval(timer);
           toast.error("OTP expired! Redirecting to signup...");
+          console.error("❌ OTP Expired - Redirecting to Signup");
           router.push("/signup");
           return 0;
         }
@@ -33,7 +45,7 @@ export default function VerifyOtpPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [email, router]);
+  }, [email, password, roleFromURL, firstname, lastname, router]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -47,18 +59,36 @@ export default function VerifyOtpPage() {
       return;
     }
 
+    const requestData = {
+      email,
+      otp,
+      password,
+      firstname,
+      lastname,
+      role: roleFromURL,
+    };
+
+    console.log("🚀 Sending Data to API:", requestData);
+
     setLoading(true);
     try {
-      const res = await axios.post("/api/auth/verifyotp", {
-        email,
-        otp,
-      });
+      const res = await axios.post("/api/auth/verifyotp", requestData);
+
+      console.log("✅ API Response:", res.data);
 
       if (res.status === 201) {
+        const userRole = res.data.role || roleFromURL; // Use API role or fallback to URL role
         toast.success("OTP verified! Redirecting...");
-        setTimeout(() => router.push("/main"), 2000);
+
+        console.log("🔄 Redirecting based on role:", userRole);
+
+        // Redirect based on user role
+        setTimeout(() => {
+          router.push(userRole === "organizer" ? "/hackathon" : "/main");
+        }, 2000);
       }
     } catch (error: any) {
+      console.error("❌ API Error:", error.response?.data || error.message);
       toast.error(error.response?.data?.error || "OTP verification failed.");
     } finally {
       setLoading(false);
