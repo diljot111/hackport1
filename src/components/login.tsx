@@ -42,9 +42,9 @@ export default function LoginForm() {
           if (userRole === "admin") {
             router.replace("/admin/dashboard");
           } else if (userRole === "organizer") {
-            router.replace("/organizer/dashboard");
+            router.replace("/hackathon");
           } else {
-            router.replace("/participant/dashboard");
+            router.replace("/main");
           }
         }, 1000);
       }

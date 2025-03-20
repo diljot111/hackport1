@@ -8,7 +8,6 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
-// import email from "next-auth/providers/email";
 
 const LabelInputContainer: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
   <div className={className}>{children}</div>
@@ -18,7 +17,41 @@ export default function SignupForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState("participant");
+  const [profilePic, setProfilePic] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
+  // Handle profile picture selection & upload to Cloudinary
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true); // Show loading while uploading
+
+    // Preview Image Locally
+    setPreview(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "profilePic");
+
+  
+    try {
+      const res = await axios.post(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        formData
+      );
+      
+      
+      setProfilePic(res.data.secure_url); // 🔹 Save Cloudinary URL
+      toast.success("Profile picture uploaded!");
+    } catch (error: any) {
+      console.error("Cloudinary Upload Error:", error.response?.data || error.message);
+      toast.error("Failed to upload profile picture. Check console for details.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,25 +65,20 @@ export default function SignupForm() {
       password: formData.get("password") as string,
       step: "send_otp",
       role: role,
+      profilePic: profilePic, // 🔹 Send Cloudinary URL instead of Base64
     };
 
-    const password = formData.get("password") as string;
-    const retypepassword = formData.get("retypepassword") as string;
-
-    if (!password || !retypepassword) {
-      toast.error("Please enter both password fields");
+    if (!profilePic) {
+      toast.error("Please upload a profile picture before signing up.");
       setLoading(false);
       return;
     }
 
-    if (password !== retypepassword) {
+    if (formData.get("password") !== formData.get("retypepassword")) {
       toast.error("Passwords do not match");
       setLoading(false);
       return;
     }
-
-    console.log("Sending Data:", userData);
-    console.log("Selected Role:", role);
 
     try {
       const res = await axios.post("/api/auth/signup", userData);
@@ -62,8 +90,6 @@ export default function SignupForm() {
             `/verify-otp?email=${userData.email}&role=${userData.role}&firstname=${userData.firstname}&lastname=${userData.lastname}&password=${encodeURIComponent(userData.password)}&redirect=${redirectUrl}`
           );
         }, 2000);
-        
-  
       }
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Signup failed");
@@ -81,7 +107,7 @@ export default function SignupForm() {
           <Label htmlFor="firstname">First name</Label>
           <Input id="firstname" name="firstname" placeholder="Tyler" type="text" required />
         </LabelInputContainer>
-        
+
         <LabelInputContainer className="mb-4">
           <Label htmlFor="lastname">Last name</Label>
           <Input id="lastname" name="lastname" placeholder="Durden" type="text" required />
@@ -90,25 +116,37 @@ export default function SignupForm() {
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
           <Input id="email" name="email" placeholder="hackport@fc.com" type="email" required />
-        </LabelInputContainer >
-       
-
+        </LabelInputContainer>
 
         <LabelInputContainer className="mb-4 text-black">
           <Label className="text-black" htmlFor="role">Select Role</Label>
           <select
-        id="role"
-        name="role"
-        className="w-full p-2 border rounded-md"
-        value={role}
-        onChange={(e) => setRole(e.target.value)}
-        required
-        >
-        <option className="text-black" value="participant">Participant</option>
-        <option className="text-black" value="organizer">Organizer</option>
-        </select>
-        
+            id="role"
+            name="role"
+            className="w-full p-2 border rounded-md"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+          >
+            <option className="text-black" value="participant">Participant</option>
+            <option className="text-black" value="organizer">Organizer</option>
+          </select>
+        </LabelInputContainer>
 
+        <LabelInputContainer className="mb-4">
+          <Label htmlFor="profilePic" className="text-black">Profile Picture</Label>
+          <input 
+            type="file" 
+            id="profilePic" 
+            accept="image/*" 
+            onChange={handleFileChange} 
+            className="w-full p-2 border rounded-md text-black"
+            disabled={uploading}
+          />
+          {uploading && <p className="text-blue-500 mt-2">Uploading...</p>}
+          {preview && (
+            <img src={preview} alt="Profile Preview" className="mt-2 w-20 h-20 rounded-full object-cover" />
+          )}
         </LabelInputContainer>
 
         <LabelInputContainer className="mb-4">
@@ -126,7 +164,7 @@ export default function SignupForm() {
             loading ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-br from-black to-neutral-600 text-white"
           }`}
           type="submit"
-          disabled={loading}
+          disabled={loading || uploading}
         >
           {loading ? "Signing up..." : "Sign up →"}
         </button>
@@ -138,28 +176,6 @@ export default function SignupForm() {
               <span className="text-blue-600">Sign In</span>
             </u>
           </Link>
-        </div>
-
-        <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
-
-        <div className="flex flex-col space-y-4">
-          <button
-            className="relative flex items-center space-x-2 px-4 w-full h-10 font-medium rounded-md shadow-input bg-gray-50 dark:bg-zinc-900"
-            type="button"
-            onClick={() => toast.info("Google login coming soon!")}
-          >
-            <IconBrandGoogle className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
-            <span className="text-neutral-700 dark:text-neutral-300 text-sm">Sign up with Google</span>
-          </button>
-
-          <button
-            className="relative flex items-center space-x-2 px-4 w-full h-10 font-medium rounded-md shadow-input bg-gray-50 dark:bg-zinc-900"
-            type="button"
-            onClick={() => toast.info("GitHub login coming soon!")}
-          >
-            <IconBrandGithub className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
-            <span className="text-neutral-700 dark:text-neutral-300 text-sm">Sign up with GitHub</span>
-          </button>
         </div>
       </form>
       <ToastContainer position="top-right" autoClose={3000} />

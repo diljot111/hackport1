@@ -47,13 +47,16 @@ export async function POST(req: Request) {
         firstname: "DefaultFirstName", // Replace with actual first name if available
         lastname: "DefaultLastName", // Replace with actual last name if available
         role, // ✅ Assign the correct role dynamically
+        username: email.split('@')[0], // Generate username from email
       },
     });
 
     console.log("User Created:", user); // Debugging
 
-    // ✅ Remove OTP from database after successful verification
-    await prisma.otp.delete({ where: { id: storedOtp.id } });
+    // ✅ Delete all OTPs related to this email (Cleanup)
+    await prisma.otp.deleteMany({ where: { email } });
+
+    console.log("✅ All OTPs cleared for:", email);
 
     // ✅ Generate JWT token
     const secret = new TextEncoder().encode(process.env.JWT_SECRET!);

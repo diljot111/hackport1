@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose"; // ✅ Using `jose` instead of `jsonwebtoken`
+import { jwtVerify } from "jose";
 
 export const config = {
-  matcher: ["/main", "/dashboard", "/profile", "/login", "/signup","/hackathon  "], // ✅ Protect these routes
+  matcher: [
+    "/main",
+    "/dashboard",
+    "/profile",
+    "/login",
+    "/signup",
+    "/hackathon",
+    "/participant-dashboard", // Add participant pages
+    "/apply-hackathon"
+  ],
 };
 
-// ✅ Tell Next.js to run middleware in Node.js runtime instead of Edge
+// Run middleware in Node.js environment
 export const runtime = "nodejs";
 
-// 🔒 Function to verify JWT using jose
+// Function to verify JWT
 async function verifyToken(token: string) {
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
@@ -41,16 +50,26 @@ export async function middleware(req: NextRequest) {
   const decoded = await verifyToken(token);
   if (!decoded) {
     console.log("Invalid Token, Redirecting to /login");
-    
-    // ❌ Clear invalid token
     const response = NextResponse.redirect(new URL("/login", req.url));
     response.cookies.set("authToken", "", { expires: new Date(0) });
     return response;
   }
 
-  console.log("Token Valid, Allowing Access");
+  console.log("Token Valid, Role:", decoded.role);
 
-  // 🔥 Prevent logged-in users from accessing login or signup pages
+  // Restrict organizers from accessing participant pages
+  const participantRoutes = ["/main", "/apply-hackathon"];
+  const organizerRoutes = ["/dashboard", "/profile", "/hackathon"];
+  if (decoded.role === "organizer" && participantRoutes.includes(req.nextUrl.pathname)) {
+    console.log("Organizer trying to access participant page, Redirecting to /main");
+    return NextResponse.redirect(new URL("/hackathon", req.url));
+  }
+  if (decoded.role === "participant" && organizerRoutes.includes(req.nextUrl.pathname)) {
+    console.log("Organizer trying to access participant page, Redirecting to /main");
+    return NextResponse.redirect(new URL("/main", req.url));
+  }
+
+  // Prevent logged-in users from accessing login or signup pages
   if (isAuthPage) {
     console.log("User already logged in, Redirecting to /main");
     return NextResponse.redirect(new URL("/main", req.url));

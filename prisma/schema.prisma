@@ -17,6 +17,7 @@ datasource db {
   id String @id @default(uuid()) @map("_id")
   firstname        String
   lastname        String
+  username   String @unique
 
   email       String  @unique
   password    String
@@ -29,6 +30,8 @@ datasource db {
   applications        Application[]
   teams              TeamMember[]
   organizedHackathons Hackathon[] @relation("Organizer")
+
+  Participant Participant[]
 }
 
 model Otp {
@@ -54,6 +57,18 @@ model Hackathon {
   organizer   User @relation(fields: [organizerId], references: [id], name: "Organizer")
   applications Application[]
   teams        Team[]
+
+  Participant Participant[]
+}
+model Participant{
+  id String @id @default(uuid()) @map("_id")
+  hackathonId String
+  userId String
+  teamId String
+  status String @default("pending") // "pending", "accepted", "rejected"
+  team Team @relation(fields: [teamId], references: [id])
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Application {
@@ -76,6 +91,8 @@ model Team {
   members    TeamMember[]
 
   Project Project[]
+
+  Participant Participant[]
 }
 
 model TeamMember {

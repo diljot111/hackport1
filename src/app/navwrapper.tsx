@@ -9,7 +9,10 @@ export default function NavbarWrapper() {
     pathname === "/login" ||
     pathname === "/signup" ||
     pathname === "/" ||
-    pathname.startsWith("/verify-otp"); // ✅ Hide Navbar on OTP page
+    // pathname === "" ||
+    pathname.startsWith("/verify-otp");
+    // pathname.startsWith("/main/[hackathonName]");
+    // ✅ Hide Navbar on OTP page
 
   return !hideNavbar ? <Navbar /> : null;
 }
