@@ -56,8 +56,12 @@ export default function SignupForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-
+  
+    console.log("Final profilePic URL before submitting:", profilePic);
+  
     const formData = new FormData(e.currentTarget);
+    const defaultProfilePic = "/userimage.webp" // ✅ Default image from public folder
+  
     const userData = {
       firstname: formData.get("firstname") as string,
       lastname: formData.get("lastname") as string,
@@ -65,29 +69,24 @@ export default function SignupForm() {
       password: formData.get("password") as string,
       step: "send_otp",
       role: role,
-      profilePic: profilePic, // 🔹 Send Cloudinary URL instead of Base64
+      profilePic: profilePic || defaultProfilePic, // ✅ Use default image if none uploaded
     };
-
-    if (!profilePic) {
-      toast.error("Please upload a profile picture before signing up.");
-      setLoading(false);
-      return;
-    }
-
+  
     if (formData.get("password") !== formData.get("retypepassword")) {
       toast.error("Passwords do not match");
       setLoading(false);
       return;
     }
-
+  
     try {
       const res = await axios.post("/api/auth/signup", userData);
       if (res.status === 200) {
         toast.success("OTP sent to your email!");
+  
         setTimeout(() => {
           const redirectUrl = userData.role === "participant" ? "/main" : "/hackathon";
           router.push(
-            `/verify-otp?email=${userData.email}&role=${userData.role}&firstname=${userData.firstname}&lastname=${userData.lastname}&password=${encodeURIComponent(userData.password)}&redirect=${redirectUrl}`
+            `/verify-otp?email=${encodeURIComponent(userData.email)}&role=${encodeURIComponent(userData.role)}&firstname=${encodeURIComponent(userData.firstname)}&lastname=${encodeURIComponent(userData.lastname)}&password=${encodeURIComponent(userData.password)}&profilePic=${encodeURIComponent(userData.profilePic)}&redirect=${encodeURIComponent(redirectUrl)}`
           );
         }, 2000);
       }
@@ -97,6 +96,7 @@ export default function SignupForm() {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="max-w-md w-full mx-auto rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-black shadow-2xl">
@@ -133,7 +133,7 @@ export default function SignupForm() {
           </select>
         </LabelInputContainer>
 
-        <LabelInputContainer className="mb-4">
+        {/* <LabelInputContainer className="mb-4">
           <Label htmlFor="profilePic" className="text-black">Profile Picture</Label>
           <input 
             type="file" 
@@ -147,7 +147,7 @@ export default function SignupForm() {
           {preview && (
             <img src={preview} alt="Profile Preview" className="mt-2 w-20 h-20 rounded-full object-cover" />
           )}
-        </LabelInputContainer>
+        </LabelInputContainer> */}
 
         <LabelInputContainer className="mb-4">
           <Label htmlFor="password">Password</Label>

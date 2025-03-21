@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, User, Calendar } from "lucide-react";
-import { PopupCard } from "./popupcard";// Import PopupCard
+import { PopupCard } from "./popupcard"; // Import PopupCard
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
@@ -27,9 +27,9 @@ export default function SearchBar() {
   }, [query]);
 
   return (
-    <div className="relative w-full max-w-lg mx-auto mt-5">
+    <div className="relative w-full max-w-lg mx-auto mt-5 z-[40]"> {/* Lower z-index */}
       {/* Search Input */}
-      <div className="flex items-center bg-gray-800 text-white rounded-full px-5 py-3 border border-gray-600 shadow-md">
+      <div className="flex items-center bg-gray-800 text-white rounded-full px-5 py-3 border border-gray-600 shadow-md relative">
         <Search className="h-5 w-5 text-gray-400" />
         <input
           type="text"
@@ -49,7 +49,7 @@ export default function SearchBar() {
 
       {/* Search Results Dropdown */}
       {isFocused && query && (
-        <div className="absolute w-full bg-gray-800 rounded-lg mt-2 shadow-lg p-3 z-50">
+        <div className="absolute w-full bg-gray-800 rounded-lg top-full mt-2 shadow-lg p-3 z-[40]">
           {/* Users */}
           {results.users.length > 0 && (
             <div>

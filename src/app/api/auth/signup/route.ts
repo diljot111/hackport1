@@ -82,7 +82,7 @@ export async function POST(req: Request) {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // ✅ Use Cloudinary URL directly (no re-upload needed)
-      const profilePicUrl = profilePic || "";
+      const profilePicUrl = profilePic ? profilePic : "";
 
       // Generate a unique username
       const uniqueUsername = await generateUniqueUsername(email);

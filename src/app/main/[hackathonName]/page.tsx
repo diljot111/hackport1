@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation"; // Import useRouter
 import Image from "next/image";
 
 interface Hackathon {
@@ -33,6 +33,7 @@ const fetchHackathon = async (name: string): Promise<Hackathon | null> => {
 
 const HackathonDetail = () => {
   const { hackathonName } = useParams();
+  const router = useRouter(); // Initialize router
   const [hackathon, setHackathon] = useState<Hackathon | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,6 +53,13 @@ const HackathonDetail = () => {
   if (loading) return <p className="text-white text-lg">Loading hackathon details...</p>;
   if (!hackathon) return <p className="text-red-500 text-lg">Hackathon not found.</p>;
 
+  // Navigate to Registration Page
+  const handleRegister = () => {
+    router.push(`/register/${encodeURIComponent(hackathon.name)}/${hackathon.id}`);
+  };
+  
+  
+
   return (
     <div className="p-6 max-w-4xl mx-auto text-white mt-15">
       <h1 className="text-3xl font-bold">{hackathon.name}</h1>
@@ -67,9 +75,19 @@ const HackathonDetail = () => {
       <p>🏆 Prize Pool: <span className="font-bold">{hackathon.prizePool}</span></p>
       <p>📅 Start Date: <span className="font-bold">{hackathon.startDate}</span></p>
       <p>📅 End Date: <span className="font-bold">{hackathon.endDate}</span></p>
+
+      {/* Visit Hackathon Button */}
       <a href={hackathon.link} target="_blank" className="mt-4 inline-block bg-blue-600 px-4 py-2 rounded-md text-white">
         Visit Hackathon
       </a>
+
+      {/* Register Now Button */}
+      <button
+        onClick={handleRegister}
+        className="mt-4 ml-4 bg-green-600 px-4 py-2 rounded-md text-white hover:bg-green-700 transition"
+      >
+        Register Now
+      </button>
     </div>
   );
 };

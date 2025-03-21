@@ -21,7 +21,7 @@ datasource db {
 
   email       String  @unique
   password    String
-  profilePic  String? // Optional
+  profilePic  String // Optional
   bio         String? 
   createdAt   DateTime @default(now())
   role     String // Default role is "participant"

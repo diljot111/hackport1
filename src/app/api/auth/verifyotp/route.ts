@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("Received Data:", body); // 🔍 Debugging
 
-    const { email, otp, password, role } = body; // ✅ Extract role
+    const { email, otp, password, role, profilePic } = body; // ✅ Extract profilePic
 
     if (!email || !otp || !password || !role) {
       console.error("❌ Missing fields:", { email, otp, password, role });
@@ -48,6 +48,7 @@ export async function POST(req: Request) {
         lastname: "DefaultLastName", // Replace with actual last name if available
         role, // ✅ Assign the correct role dynamically
         username: email.split('@')[0], // Generate username from email
+        profilePic: profilePic || "/userimage.webp", // ✅ Store Cloudinary URL or default image
       },
     });
 
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
 
     // ✅ Set token in HTTP-Only Cookie
     const response = NextResponse.json(
-      { message: "OTP verified! User registered successfully!", user: { id: user.id, email, role } },
+      { message: "OTP verified! User registered successfully!", user: { id: user.id, email, role, profilePic: user.profilePic } },
       { status: 201 }
     );
     response.cookies.set("authToken", token, {
