@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
     const hackathons = await prisma.hackathon.findMany({
       where: { name: { contains: query, mode: "insensitive" } },
-      select: { id: true, name: true, startDate: true },
+      select: { id: true, name: true, startDate: true , endDate: true},
     });
 
     return NextResponse.json({ users, hackathons });

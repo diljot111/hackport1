@@ -4,16 +4,34 @@ import bcrypt from "bcrypt";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 
+// Function to generate a username from email
+async function generateUniqueUsername(email: string) {
+  let baseUsername = email.split("@")[0]; // Get the part before "@"
+  baseUsername = baseUsername.slice(0, 6); // Limit length (max 6 chars)
+
+  let username = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`; // Add a 4-digit random number
+
+  // Ensure uniqueness in the database
+  let existingUser = await prisma.user.findUnique({ where: { username } });
+
+  while (existingUser) {
+    username = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`; // Regenerate if taken
+    existingUser = await prisma.user.findUnique({ where: { username } });
+  }
+
+  return username;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     console.log("Received Data:", body); // 🔍 Debugging
 
-    const { email, otp, password, role, profilePic } = body; // ✅ Extract profilePic
+    const { email, otp, password, role, profilePic, firstname, lastname } = body;
 
-    if (!email || !otp || !password || !role) {
-      console.error("❌ Missing fields:", { email, otp, password, role });
-      return NextResponse.json({ error: "All fields are required (email, otp, password, role)" }, { status: 400 });
+    if (!email || !otp || !password || !role || !firstname || !lastname) {
+      console.error("❌ Missing fields:", { email, otp, password, role, firstname, lastname });
+      return NextResponse.json({ error: "All fields are required (email, otp, password, role, firstname, lastname)" }, { status: 400 });
     }
 
     // ✅ Ensure role is valid
@@ -33,22 +51,28 @@ export async function POST(req: Request) {
     console.log("Stored OTP:", storedOtp); // Debugging
 
     if (!storedOtp || storedOtp.otp !== otp || new Date() > storedOtp.expiresAt) {
+      // ✅ Delete failed OTP attempt
+      await prisma.otp.deleteMany({ where: { email } });
+
       return NextResponse.json({ error: "Invalid or expired OTP" }, { status: 400 });
     }
 
     // ✅ Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Create user in the database with the correct role
+    // ✅ Generate a unique username based on email
+    const uniqueUsername = await generateUniqueUsername(email);
+
+    // ✅ Create user in the database with actual name
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        firstname: "DefaultFirstName", // Replace with actual first name if available
-        lastname: "DefaultLastName", // Replace with actual last name if available
-        role, // ✅ Assign the correct role dynamically
-        username: email.split('@')[0], // Generate username from email
-        profilePic: profilePic || "/userimage.webp", // ✅ Store Cloudinary URL or default image
+        firstname,
+        lastname,
+        role,
+        username: uniqueUsername, // ✅ Partial email + random number
+        profilePic: profilePic || "/userimage.webp",
       },
     });
 
@@ -69,7 +93,7 @@ export async function POST(req: Request) {
 
     // ✅ Set token in HTTP-Only Cookie
     const response = NextResponse.json(
-      { message: "OTP verified! User registered successfully!", user: { id: user.id, email, role, profilePic: user.profilePic } },
+      { message: "OTP verified! User registered successfully!", user: { id: user.id, email, role, username: user.username, profilePic: user.profilePic } },
       { status: 201 }
     );
     response.cookies.set("authToken", token, {

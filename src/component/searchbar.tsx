@@ -1,106 +1,115 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X, User, Calendar } from "lucide-react";
-import { PopupCard } from "./popupcard"; // Import PopupCard
+import { FaUser, FaTrophy } from "react-icons/fa";
+import { IoSadOutline } from "react-icons/io5";
 
-export default function SearchBar() {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState({ users: [], hackathons: [] });
-  const [isFocused, setIsFocused] = useState(false);
-  const [selectedHackathon, setSelectedHackathon] = useState(null); // State to manage selected hackathon
+interface SearchBarProps {
+  onSearch?: (query: string, results: any[]) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (!query) {
-      setResults({ users: [], hackathons: [] });
-      return;
-    }
-
     const fetchResults = async () => {
-      const res = await fetch(`/api/auth/search?q=${query}`);
-      const data = await res.json();
-      setResults(data);
+      if (!search.trim()) {
+        setResults([]);
+        setShowDropdown(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/auth/search?q=${search}`);
+        const data = await res.json();
+        console.log("Search Results:", data);
+
+        // Filter out hackathons that have already ended
+        const upcomingHackathons = data.hackathons.filter(
+          (hackathon: any) => new Date(hackathon.endDate) >= new Date()
+        );
+
+        const combinedResults = [...data.users, ...upcomingHackathons];
+        setResults(combinedResults);
+        setShowDropdown(true);
+
+        if (onSearch) {
+          onSearch(search, combinedResults);
+        }
+      } catch (error) {
+        console.error("Search Error:", error);
+      }
     };
 
-    fetchResults();
-  }, [query]);
+    const timeout = setTimeout(fetchResults, 300);
+    return () => clearTimeout(timeout);
+  }, [search, onSearch]);
+
+  const handleSelect = (item: any) => {
+    if (item.firstname) {
+      router.push(`/profile/${item.id}`);
+    } else {
+      router.push(`/main/${encodeURIComponent(item.name)}`);
+    }
+    setShowDropdown(false);
+    setSearch("");
+  };
 
   return (
-    <div className="relative w-full max-w-lg mx-auto mt-5 z-[40]"> {/* Lower z-index */}
-      {/* Search Input */}
-      <div className="flex items-center bg-gray-800 text-white rounded-full px-5 py-3 border border-gray-600 shadow-md relative">
-        <Search className="h-5 w-5 text-gray-400" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search users or hackathons..."
-          className="bg-transparent outline-none w-full px-3 text-base text-white"
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-        />
-        {query && (
-          <button onClick={() => setQuery("")} className="text-gray-400 hover:text-white">
-            <X className="h-5 w-5" />
-          </button>
-        )}
-      </div>
+    <div className="relative w-full max-w-md mx-auto">
+      {/* Input Field */}
+      <input
+        type="text"
+        placeholder="Search Hackathons..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onFocus={() => search.trim() && setShowDropdown(true)}
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-white bg-gray-900"
+      />
 
-      {/* Search Results Dropdown */}
-      {isFocused && query && (
-        <div className="absolute w-full bg-gray-800 rounded-lg top-full mt-2 shadow-lg p-3 z-[40]">
-          {/* Users */}
-          {results.users.length > 0 && (
-            <div>
-              <p className="text-gray-400 text-sm mb-2">Users</p>
-              {results.users.map((user: any) => (
-                <div
-                  key={user.id}
-                  className="flex items-center gap-3 p-2 hover:bg-gray-700 cursor-pointer rounded-md"
-                  onMouseDown={() => router.push(`/profile/${user.id}`)}
-                >
-                  <User className="w-5 h-5 text-blue-400" />
-                  {user.profilePic ? (
-                    <img src={user.profilePic} alt={user.firstname} className="w-8 h-8 rounded-full" />
-                  ) : (
-                    <span className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white">
-                      {user.firstname.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                  <span className="text-white">{user.firstname}</span>
-                </div>
-              ))}
-            </div>
+      {/* 🔽 Dropdown for Search Results */}
+      {showDropdown && (
+        <ul className="absolute left-0 right-0 bg-black text-white border border-gray-600 rounded-lg shadow-lg mt-2 max-h-60 overflow-y-auto z-50">
+          {results.length > 0 ? (
+            results.map((item, index) => (
+              <li
+                key={index}
+                className="px-4 py-2 flex items-center gap-3 hover:bg-gray-800 cursor-pointer"
+                onClick={() => handleSelect(item)}
+              >
+                {item.firstname ? (
+                  <>
+                    <FaUser className="text-blue-400" />
+                    <span>{item.firstname}</span>
+                  </>
+                ) : (
+                  <>
+                    <FaTrophy className="text-yellow-400" />
+                    <div>
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <p className="text-sm text-gray-400">
+                        {new Date(item.startDate).toLocaleDateString()} -{" "}
+                        {new Date(item.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </li>
+            ))
+          ) : (
+            <li className="px-4 py-2 flex items-center gap-3 text-gray-400">
+              <IoSadOutline className="text-2xl" />
+              <span>No results found</span>
+            </li>
           )}
-
-          {/* Hackathons */}
-          {results.hackathons.length > 0 && (
-            <div>
-              <p className="text-gray-400 text-sm mt-2 mb-2">Hackathons</p>
-              {results.hackathons.map((hackathon: any) => (
-                <div
-                  key={hackathon.id}
-                  className="flex items-center gap-3 p-2 hover:bg-gray-700 cursor-pointer rounded-md"
-                  onMouseDown={() => setSelectedHackathon(hackathon)} // Open popup instead of navigating
-                >
-                  <Calendar className="w-5 h-5 text-red-400" />
-                  <span className="text-white">{hackathon.name}</span>
-                  <span className="text-gray-400 text-xs ml-auto">{hackathon.startDate}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* No Results */}
-          {results.users.length === 0 && results.hackathons.length === 0 && (
-            <p className="text-gray-400 text-center p-2">No results found</p>
-          )}
-        </div>
+        </ul>
       )}
-
-      {/* Hackathon Popup Modal */}
-      {selectedHackathon && <PopupCard hackathon={selectedHackathon} onClose={() => setSelectedHackathon(null)} />}
     </div>
   );
-}
+};
+
+export default SearchBar;

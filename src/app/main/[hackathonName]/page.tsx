@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation"; // Import useRouter
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 
 interface Hackathon {
@@ -17,7 +17,12 @@ interface Hackathon {
   link: string;
 }
 
-// Fetch hackathon data dynamically
+interface Participant {
+  id: string;
+  name: string;
+  email: string;
+}
+
 const fetchHackathon = async (name: string): Promise<Hackathon | null> => {
   try {
     const response = await fetch(`/api/auth/hackathon-cards`);
@@ -31,10 +36,23 @@ const fetchHackathon = async (name: string): Promise<Hackathon | null> => {
   }
 };
 
+const fetchParticipants = async (hackathonId: string): Promise<Participant[]> => {
+  try {
+    const response = await fetch(`/api/auth/hackathon/${hackathonId}`);
+    if (!response.ok) throw new Error("Failed to fetch participants");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching participants:", error);
+    return [];
+  }
+};
+
+
 const HackathonDetail = () => {
   const { hackathonName } = useParams();
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const [hackathon, setHackathon] = useState<Hackathon | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,6 +62,10 @@ const HackathonDetail = () => {
       setLoading(true);
       const data = await fetchHackathon(decodeURIComponent(hackathonName as string));
       setHackathon(data);
+      if (data) {
+        const users = await fetchParticipants(data.id);
+        setParticipants(users);
+      }
       setLoading(false);
     };
 
@@ -53,12 +75,11 @@ const HackathonDetail = () => {
   if (loading) return <p className="text-white text-lg">Loading hackathon details...</p>;
   if (!hackathon) return <p className="text-red-500 text-lg">Hackathon not found.</p>;
 
-  // Navigate to Registration Page
   const handleRegister = () => {
-    router.push(`/register/${encodeURIComponent(hackathon.name)}/${hackathon.id}`);
+    if (hackathon) {
+      router.push(`/main/${encodeURIComponent(hackathon.name)}/register/${hackathon.id}`);
+    }
   };
-  
-  
 
   return (
     <div className="p-6 max-w-4xl mx-auto text-white mt-15">
@@ -76,18 +97,38 @@ const HackathonDetail = () => {
       <p>📅 Start Date: <span className="font-bold">{hackathon.startDate}</span></p>
       <p>📅 End Date: <span className="font-bold">{hackathon.endDate}</span></p>
 
-      {/* Visit Hackathon Button */}
       <a href={hackathon.link} target="_blank" className="mt-4 inline-block bg-blue-600 px-4 py-2 rounded-md text-white">
         Visit Hackathon
       </a>
-
-      {/* Register Now Button */}
       <button
         onClick={handleRegister}
         className="mt-4 ml-4 bg-green-600 px-4 py-2 rounded-md text-white hover:bg-green-700 transition"
       >
         Register Now
       </button>
+
+      {/* Participants Table */}
+      <h2 className="text-2xl font-bold mt-8">Participants</h2>
+      {participants.length > 0 ? (
+        <table className="w-full mt-4 border border-gray-600">
+          <thead>
+            <tr className="bg-gray-700">
+              <th className="p-2 border border-gray-500">Name</th>
+              <th className="p-2 border border-gray-500">Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            {participants.map((participant) => (
+              <tr key={participant.id} className="border border-gray-600">
+                <td className="p-2 border border-gray-500">{participant.name}</td>
+                <td className="p-2 border border-gray-500">{participant.email}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="text-gray-400 mt-4">No participants registered yet.</p>
+      )}
     </div>
   );
 };

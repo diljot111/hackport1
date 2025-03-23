@@ -3,14 +3,17 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
-    const { userId, hackathonId } = await req.json();
+    const body = await req.json();
+    console.log("🔍 Received body:", body);
 
-    // Validate input
+    const { userId, hackathonId } = body;
+
     if (!userId || !hackathonId) {
+      console.error("🛑 Missing required fields:", { userId, hackathonId });
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Check if hackathon exists
+    // ✅ Check if hackathon exists
     const hackathonExists = await prisma.hackathon.findUnique({
       where: { id: hackathonId },
     });
@@ -19,7 +22,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Hackathon not found" }, { status: 404 });
     }
 
-    // Check if user exists
+    // ✅ Check if user exists
     const userExists = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -28,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check if the user is already registered
+    // ✅ Check if the user is already registered
     const existingRegistration = await prisma.participant.findFirst({
       where: { userId, hackathonId },
     });
@@ -37,14 +40,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User already registered" }, { status: 400 });
     }
 
-    // Register the user
+    // ✅ Register the user (without team)
     await prisma.participant.create({
       data: {
-        userId,
-        hackathonId,
         user: { connect: { id: userId } },
         hackathon: { connect: { id: hackathonId } },
-        team: { connect: { id: "default-team-id" } }, // Replace "default-team-id" with an actual team ID
       },
     });
 

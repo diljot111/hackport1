@@ -56,7 +56,7 @@ model Hackathon {
 
   organizer   User @relation(fields: [organizerId], references: [id], name: "Organizer")
   applications Application[]
-  teams        Team[]
+  teams        Team?
 
   Participant Participant[]
 }
@@ -64,9 +64,9 @@ model Participant{
   id String @id @default(uuid()) @map("_id")
   hackathonId String
   userId String
-  teamId String
+  teamId String?
   status String @default("pending") // "pending", "accepted", "rejected"
-  team Team @relation(fields: [teamId], references: [id])
+  team Team? @relation(fields: [teamId], references: [id])
   hackathon Hackathon @relation(fields: [hackathonId], references: [id])
   user User @relation(fields: [userId], references: [id])
 }
@@ -84,7 +84,7 @@ model Application {
 model Team {
   id String @id @default(uuid()) @map("_id")
   name        String
-  hackathonId String
+  hackathonId String @unique
   createdAt   DateTime @default(now())
 
   hackathon  Hackathon @relation(fields: [hackathonId], references: [id])

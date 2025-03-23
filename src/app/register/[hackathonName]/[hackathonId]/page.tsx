@@ -35,7 +35,7 @@ const RegisterPage = () => {
             console.error("hackathonId is missing");
             return;
           }
-          const hackRes = await axios.get(`/api/auth/hackathon/${hackathonId}`);
+          const hackRes = await axios.get(`/api/auth/hackathon/${hackathon?.id}`);
           setHackathon(hackRes.data);
           
       } catch (error) {
